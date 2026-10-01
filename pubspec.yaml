@@ -1,0 +1,32 @@
+name: app_info_builder
+description: "Build-time app info generator for Flutter (Android, iOS, macOS, Linux, Windows). Reads pubspec.yaml and — when present — the Android manifest / Gradle files, then writes a Dart file of compile-time constants."
+version: 0.0.2
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  yaml: ^3.1.3
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.BNeoTech.app_info_builder
+        pluginClass: AppInfoBuilderPlugin
+      ios:
+        pluginClass: AppInfoBuilderPlugin
+      macos:
+        pluginClass: AppInfoBuilderPlugin
+      linux:
+        pluginClass: AppInfoBuilderPlugin
+      windows:
+        pluginClass: AppInfoBuilderPluginCApi

@@ -1,0 +1,7 @@
+class_name: ExampleAppInfo
+output: lib/generated/app_info.dart
+include_git_hash: false
+include_build_timestamp: true
+extra_fields:
+  buildFlavor: debug
+  apiEnv: staging

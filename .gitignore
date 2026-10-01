@@ -1,0 +1,34 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# Generated output (per-consumer)
+/lib/generated/
+
+# Android
+android/.gradle/
+android/build/
+android/local.properties
+
+# Android (nested, e.g. example/)
+**/android/local.properties
+**/android/.gradle/
+**/android/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# MCP manager backups
+.mcp-manager/
+
+# Example app (generated/derived)
+example/.dart_tool/
+example/build/
+example/pubspec.lock
+example/.flutter-plugins-dependencies
+example/lib/generated/
+example/example_app.iml
