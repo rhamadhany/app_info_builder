@@ -60,7 +60,6 @@ class AppInfoGeneratorPlugin : Plugin<Project> {
             println("[app_info_builder] FlutterPlugin not found; auto-generate disabled.")
             return
         }
-        println("[app_info_builder] Flutter project found: " + flutterProject.path)
 
         val androidRootDir = rootProj.projectDir
         val userProjectDir = androidRootDir.parentFile
@@ -68,36 +67,48 @@ class AppInfoGeneratorPlugin : Plugin<Project> {
 
         val runGenerate: Action<Task> = object : Action<Task> {
             override fun execute(t: Task) {
-                println("[app_info_builder] Running dart run app_info_builder:generate in " + userProjectDir)
                 val pb = ProcessBuilder("dart", "run", "app_info_builder:generate")
                 pb.directory(userProjectDir)
-                pb.inheritIO()
+                pb.redirectErrorStream(true)
+
                 val proc = pb.start()
+                val output = proc.inputStream.bufferedReader().use { it.readText() }
                 val exitCode = proc.waitFor()
+
+                // Print every line with a consistent [app_info_builder] prefix
+                // so it always shows up in Gradle / Flutter build logs.
+                if (output.isNotBlank()) {
+                    output.trim().lines().forEach { line ->
+                        println("[app_info_builder] $line")
+                    }
+                }
+
                 if (exitCode != 0) {
-                    throw GradleException("app_info_builder generate failed with exit code " + exitCode)
+                    throw GradleException(
+                        "app_info_builder generate failed with exit code $exitCode"
+                    )
                 }
             }
         }
 
         val existing = flutterProject.tasks.findByName("generateAppInfo")
-        val appInfoTask: Task = existing ?: flutterProject.tasks.register("generateAppInfo", object : Action<Task> {
-            override fun execute(t: Task) {
-                t.group = "flutter"
-                t.description = "Generate lib/generated/app_info.dart (compile-time constants)."
-                t.doLast(runGenerate)
-            }
-        }).get()
+        val appInfoTask: Task = existing ?: flutterProject.tasks.register(
+            "generateAppInfo",
+            object : Action<Task> {
+                override fun execute(t: Task) {
+                    t.group = "flutter"
+                    t.description =
+                        "Generate lib/generated/app_info.dart (compile-time constants)."
+                    t.doLast(runGenerate)
+                }
+            },
+        ).get()
 
         val hookAction: Action<Task> = object : Action<Task> {
             override fun execute(t: Task) {
                 if (t.name.startsWith("compileFlutterBuild")) {
-                    println("[app_info_builder] HOOK: " + t.path)
-                    // Run `generateAppInfo` before this compile task.
-                    // The task itself is unconditionally re-executed
-                    // (up-to-date checks disabled) so the generated Dart file
-                    // always reflects the current metadata.
                     t.dependsOn(appInfoTask)
+                    // Always re-run so generated Dart reflects current metadata.
                     appInfoTask.outputs.upToDateWhen(object : Spec<Task> {
                         override fun isSatisfiedBy(element: Task): Boolean = false
                     })
